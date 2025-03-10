@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Target, Users, Sparkles, ArrowRight, Award, Rocket, LightbulbIcon, UserCircle2, BookOpen } from 'lucide-react';
 import { WaveDivider } from '../components/WaveDivider';
@@ -9,6 +9,29 @@ const FEATURE_IMAGES = [
   "/src/assets/images/img2.png",
   "/src/assets/images/img3.png"
 ];
+
+function AnimatedNumber({ target }: { target: number }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const duration = 2000; // Animation duration in ms
+    const start = Date.now();
+
+    const animate = () => {
+      const now = Date.now();
+      const progress = Math.min(1, (now - start) / duration);
+      setCount(Math.floor(progress * target));
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  }, [target]);
+
+  return <span>{count}</span>;
+}
 
 function FeatureStep({ 
   stepNumber,
@@ -25,34 +48,44 @@ function FeatureStep({
   iconColor?: string,
   imageIndex?: number
 }) {
+  const [isHovered, setIsHovered] = useState(false);
   const backgroundImage = FEATURE_IMAGES[imageIndex % FEATURE_IMAGES.length];
   
   return (
-    <div className="flex flex-col items-center text-center relative">
-      {/* Background image */}
-      <div className="absolute inset-0 flex justify-center items-center opacity-10 pointer-events-none">
-        <img 
-          src={backgroundImage} 
-          alt="" 
-          className="w-3/4 h-auto object-contain"
-        />
+    <div 
+      className="flex flex-col items-center text-center relative p-8 rounded-3xl overflow-hidden transform transition-all duration-500 hover:scale-105 group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Background image with parallax effect */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000"
+        style={{ 
+          backgroundImage: `url(${backgroundImage})`,
+          transform: isHovered ? 'scale(1.1)' : 'scale(1)'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/70 to-white/90" />
       </div>
       
-      {/* Icon with colored background */}
-      <div className={`mb-6 ${iconColor} relative z-10`}>
-        <Icon className="w-16 h-16 stroke-[1.5]" />
+      {/* Icon with animated background */}
+      <div className="relative mb-6 z-10">
+        <div className="absolute inset-0 bg-blue-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md scale-95 group-hover:scale-105" />
+        <Icon className={`w-16 h-16 stroke-[1.5] ${iconColor} transition-colors duration-300 group-hover:text-blue-600`} />
       </div>
       
       {/* Step number */}
-      <div className="mb-2 relative z-10">
-        <span className="text-lg font-medium text-blue-500">Step {stepNumber}:</span>
+      <div className="mb-2 z-10">
+        <span className="text-lg font-medium bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+          Step {stepNumber}:
+        </span>
       </div>
       
       {/* Title */}
-      <h3 className="text-2xl font-bold mb-3 text-gray-800 relative z-10">{title}</h3>
+      <h3 className="text-2xl font-bold mb-3 text-gray-800 z-10">{title}</h3>
       
       {/* Description */}
-      <p className="text-gray-600 max-w-xs mx-auto relative z-10">{description}</p>
+      <p className="text-gray-600 max-w-xs mx-auto z-10">{description}</p>
     </div>
   );
 }
@@ -60,40 +93,99 @@ function FeatureStep({
 function StatItem({ 
   icon: Icon, 
   number, 
-  label,
-  imageIndex = 0
+  label
 }: { 
   icon: React.ElementType, 
   number: string, 
-  label: string,
-  imageIndex?: number
+  label: string
 }) {
-  const backgroundImage = FEATURE_IMAGES[imageIndex % FEATURE_IMAGES.length];
-  
   return (
-    <div className="flex flex-col items-center text-center relative py-8">
-      {/* Background image */}
-      <div className="absolute inset-0 flex justify-center items-center opacity-10 pointer-events-none">
-        <img 
-          src={backgroundImage} 
-          alt="" 
-          className="w-3/4 h-auto object-contain"
-        />
+    <div className="flex flex-col items-center text-center group">
+      {/* Icon with animated background */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 bg-blue-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md scale-95 group-hover:scale-105"></div>
+        <Icon className="w-14 h-14 stroke-[1.5] text-blue-500 relative z-10 group-hover:text-blue-600 transition-colors duration-300" />
       </div>
       
-      {/* Icon */}
-      <div className="relative mb-4 text-blue-500 z-10">
-        <Icon className="w-14 h-14 stroke-[1.5]" />
-      </div>
-      
-      {/* Number */}
-      <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2 relative z-10">
-        {number}
+      {/* Animated number */}
+      <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
+        {number.includes('+') ? (
+          <>
+            <AnimatedNumber target={parseInt(number)} />+
+          </>
+        ) : (
+          <AnimatedNumber target={parseInt(number)} />
+        )}
       </div>
       
       {/* Label */}
-      <div className="text-gray-600 font-medium relative z-10">{label}</div>
+      <div className="text-gray-600 font-medium max-w-[200px] leading-tight">{label}</div>
     </div>
+  );
+}
+
+function InnovationSection() {
+  const navigate = useNavigate();
+  
+  return (
+    <section className="relative overflow-hidden">
+      {/* Top wave divider */}
+      <WaveDivider className="text-blue-600/20" variant="gentle" />
+
+      {/* Main content */}
+      <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 py-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent mb-6 animate-pulse-slow">
+              Innovation trifft Bildung
+            </h2>
+            <p className="text-xl text-blue-100 mb-8">
+              Entdecken Sie die Möglichkeiten von Bildungserlebnis 4.0 und gestalten Sie 
+              die Zukunft des Lernens mit modernster Technologie.
+            </p>
+            <button 
+              onClick={() => navigate('/login')}
+              className="px-8 py-3 bg-white text-blue-600 rounded-full font-semibold hover:bg-blue-50 transition-all duration-300 flex items-center gap-2 mx-auto group hover:shadow-lg hover:shadow-blue-500/30 relative overflow-hidden"
+            >
+              <span className="absolute inset-0 w-full h-full bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md" />
+              <Rocket className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+              <span className="relative z-10">Jetzt starten</span>
+              <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+              <span className="absolute right-0 w-12 h-full bg-blue-100/30 skew-x-12 -translate-x-36 group-hover:translate-x-36 transition-transform duration-700" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom wave divider */}
+      <WaveDivider className="text-blue-600/20" variant="gentle" flip={true} />
+    </section>
+  );
+}
+
+function FooterSection() {
+  return (
+    <footer className="relative mt-24">
+      {/* Top wave divider */}
+      <WaveDivider className="text-blue-600/20" variant="gentle" />
+
+      {/* Main content */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 py-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <p className="mb-4">
+              <a 
+                href="mailto:admin@bildungserlebnis.de" 
+                className="text-white hover:text-blue-200 transition-colors duration-300 underline hover:no-underline"
+              >
+                Kontakt: admin@bildungserlebnis.de
+              </a>
+            </p>
+            <p className="text-white"> 2024 Bildungserlebnis 4.0</p>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -166,15 +258,17 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* Features Section - Redesigned to be similar to the example */}
-      <section className="py-20 bg-gradient-to-b from-white to-blue-50">
+      {/* Features Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-blue-500 font-medium uppercase tracking-wider">SO FUNKTIONIERT ES</span>
-            <h2 className="text-4xl font-bold text-gray-800 mt-2 mb-4">Nahtlose Implementierung</h2>
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mt-2 mb-4">
+              Nahtlose Implementierung
+            </h2>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-10 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <FeatureStep 
               stepNumber={1}
               icon={LightbulbIcon}
@@ -205,58 +299,26 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Statistics Section - Redesigned to match the feature steps style */}
-      <section className="py-20 bg-gradient-to-b from-blue-50 to-white">
-        <div className="text-center mb-16">
-          <span className="text-blue-500 font-medium uppercase tracking-wider">UNSERE ERFOLGE</span>
-          <h2 className="text-4xl font-bold text-gray-800 mt-2 mb-4">Gemeinsam gestalten wir die Bildung von morgen</h2>
-        </div>
-        
-        <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-          <StatItem icon={Target} number="100%" label="Erfolgsquote" imageIndex={0} />
-          <StatItem icon={Users} number="1000+" label="Aktive Nutzer" imageIndex={1} />
-          <StatItem icon={Award} number="50+" label="Auszeichnungen" imageIndex={2} />
-          <StatItem icon={Sparkles} number="24/7" label="Support" imageIndex={0} />
-        </div>
-      </section>
-
-      {/* Innovation Section */}
-      <section className="container mx-auto px-4 py-24">
-        <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl overflow-hidden shadow-xl transform hover:scale-[1.02] transition-all duration-500 group">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-30 blur-3xl transition-opacity duration-1000"></div>
-          <WaveDivider className="text-white/20" variant="gentle" />
-          <div className="px-8 py-16 text-white relative z-10">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-4xl font-bold mb-6 animate-pulse-slow">Innovation trifft Bildung</h2>
-              <p className="text-xl mb-8">
-                Entdecken Sie die Möglichkeiten von Bildungserlebnis 4.0 und gestalten Sie 
-                die Zukunft des Lernens mit modernster Technologie.
-              </p>
-              <button 
-                onClick={() => navigate('/login')}
-                className="px-8 py-3 bg-white text-blue-600 rounded-full font-semibold hover:bg-blue-50 transition-all duration-300 flex items-center gap-2 mx-auto group hover:shadow-lg hover:shadow-blue-500/30 relative overflow-hidden"
-              >
-                <span className="absolute inset-0 w-full h-full bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md"></span>
-                <Rocket className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-                <span className="relative z-10">Jetzt starten</span>
-                <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-                <span className="absolute right-0 w-12 h-full bg-blue-100/30 skew-x-12 -translate-x-36 group-hover:translate-x-36 transition-transform duration-700"></span>
-              </button>
-            </div>
+      {/* Statistics Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <span className="text-blue-500 font-medium uppercase tracking-wider">UNSERE ERFOLGE</span>
+            <h2 className="text-4xl font-bold text-gray-800 mt-2 mb-4">Gemeinsam gestalten wir die Bildung von morgen</h2>
           </div>
-          <WaveDivider className="text-white/20" variant="gentle" flip={true} />
+          
+          <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+            <StatItem icon={Target} number="100" label="Erfolgsquote" />
+            <StatItem icon={Users} number="1000" label="Aktive Nutzer" />
+            <StatItem icon={Award} number="50" label="Auszeichnungen" />
+            <StatItem icon={Sparkles} number="24" label="Support Verfügbarkeit" />
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white mt-16">
-        <WaveDivider className="text-blue-50" flip={true} />
-        <div className="container mx-auto px-4 py-8 text-center">
-          <p className="mb-2 hover:text-blue-200 transition-colors duration-300 inline-block">Kontakt: <a href="mailto:admin@bildungserlebnis.de" className="underline hover:no-underline">admin@bildungserlebnis.de</a></p>
-          <p> 2024 Bildungserlebnis 4.0</p>
-        </div>
-      </footer>
+      <InnovationSection />
+
+      <FooterSection />
     </div>
   );
 }
