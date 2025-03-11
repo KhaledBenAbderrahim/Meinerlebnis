@@ -17,12 +17,51 @@ import {
   Archive,
   Copy,
   Eye,
-  Share2
+  Share2,
+  Brain,
+  ArrowRight,
+  Check,
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { Course, CourseStatus, Notification } from '../types/course';
 import { WaveDivider } from '../components/WaveDivider';
 
-// Mock data remains unchanged...
+// Mock data for recommendations
+const mockRecommendations: Course[] = [
+  {
+    id: '1',
+    title: 'Einführung in Künstliche Intelligenz',
+    status: 'active',
+    category: 'ai',
+    startDate: '2024-03-01',
+    endDate: '2024-04-30',
+    description: 'Grundlagen der KI und maschinelles Lernen',
+    moduleCount: 8,
+    studentCount: 45,
+    lastModified: '2024-03-15',
+    instructor: 'Dr. Maria Schmidt',
+    aiRecommendationScore: 98,
+    progress: 0
+  },
+  {
+    id: '2',
+    title: 'Machine Learning Advanced',
+    status: 'draft',
+    category: 'ai',
+    startDate: '2024-04-01',
+    endDate: '2024-05-30',
+    description: 'Fortgeschrittene Konzepte des maschinellen Lernens',
+    moduleCount: 10,
+    studentCount: 0,
+    lastModified: '2024-03-16',
+    instructor: 'Prof. Dr. Thomas Weber',
+    aiRecommendationScore: 95,
+    progress: 0
+  }
+];
+
+// Mock data for courses
 const mockCourses: Course[] = [
   {
     id: '1',
@@ -108,17 +147,104 @@ function StatusBadge({ status }: { status: CourseStatus }) {
   );
 }
 
-function QuickStatsCard({ icon: Icon, title, value, trend }: { icon: any; title: string; value: string; trend?: string }) {
+function QuickStatsCard({ icon: Icon, title, value, trend, trendDirection = 'up', cardType = 'line' }: { 
+  icon: any; 
+  title: string; 
+  value: string; 
+  trend?: string; 
+  trendDirection?: 'up' | 'down';
+  cardType?: 'line' | 'bar' | 'dots' | 'wave';
+}) {
+  const gradients = {
+    primary: 'from-blue-500 to-blue-600',
+    secondary: 'from-blue-400 to-blue-500',
+    tertiary: 'from-blue-600 to-blue-700',
+    quaternary: 'from-blue-500 to-blue-700'
+  };
+
+  const trendIcons = {
+    up: <ChevronDown className="h-3 w-3 transform rotate-180 ml-1" />,
+    down: <ChevronDown className="h-3 w-3 ml-1" />
+  };
+
+  const trendColors = {
+    up: 'text-green-300',
+    down: 'text-red-300'
+  };
+
+  const renderDiagram = () => {
+    switch (cardType) {
+      case 'line':
+        return (
+          <svg className="w-full h-full" viewBox="0 0 100 20">
+            <polyline
+              points="0,10 20,15 40,5 60,10 80,5 100,10"
+              fill="none"
+              stroke="rgba(255,255,255,0.4)"
+              strokeWidth="2"
+            />
+          </svg>
+        );
+      case 'bar':
+        return (
+          <svg className="w-full h-full" viewBox="0 0 100 20">
+            <rect x="10" y="12" width="10" height="8" fill="rgba(255,255,255,0.3)" />
+            <rect x="30" y="8" width="10" height="12" fill="rgba(255,255,255,0.4)" />
+            <rect x="50" y="5" width="10" height="15" fill="rgba(255,255,255,0.5)" />
+            <rect x="70" y="10" width="10" height="10" fill="rgba(255,255,255,0.4)" />
+          </svg>
+        );
+      case 'dots':
+        return (
+          <svg className="w-full h-full" viewBox="0 0 100 20">
+            <circle cx="15" cy="10" r="3" fill="rgba(255,255,255,0.4)" />
+            <circle cx="35" cy="6" r="3" fill="rgba(255,255,255,0.5)" />
+            <circle cx="55" cy="14" r="3" fill="rgba(255,255,255,0.4)" />
+            <circle cx="75" cy="8" r="3" fill="rgba(255,255,255,0.5)" />
+            <circle cx="95" cy="12" r="3" fill="rgba(255,255,255,0.4)" />
+          </svg>
+        );
+      case 'wave':
+        return (
+          <svg className="w-full h-full" viewBox="0 0 100 20">
+            <path
+              d="M0,10 C20,5 30,15 50,10 C70,5 80,15 100,10"
+              fill="none"
+              stroke="rgba(255,255,255,0.4)"
+              strokeWidth="2"
+            />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const gradientType = 
+    cardType === 'line' ? 'primary' : 
+    cardType === 'bar' ? 'secondary' : 
+    cardType === 'dots' ? 'tertiary' : 'quaternary';
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div className="flex items-center">
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <Icon className="h-6 w-6 text-blue-600" />
+    <div className={`rounded-xl p-4 shadow-sm bg-gradient-to-br ${gradients[gradientType]} text-white transform transition-all duration-300 hover:shadow-lg hover:scale-102`}>
+      <div className="flex flex-col h-full">
+        <div className="flex justify-between items-start mb-3">
+          <div className="p-1.5 bg-white/20 rounded-lg">
+            <Icon className="h-5 w-5 text-white" />
+          </div>
+          {trend && (
+            <div className={`flex items-center text-xs font-medium ${trendColors[trendDirection]}`}>
+              {trend}
+              {trendIcons[trendDirection]}
+            </div>
+          )}
         </div>
-        <div className="ml-4">
-          <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-          <p className="text-2xl font-semibold text-gray-900">{value}</p>
-          {trend && <p className="text-sm text-green-600 mt-1">{trend}</p>}
+        <div className="mt-auto">
+          <p className="text-3xl font-extrabold tracking-tight">{value}</p>
+          <p className="text-xs text-white/60 mt-1 uppercase tracking-wider font-medium">{title}</p>
+        </div>
+        <div className="mt-3 h-8">
+          {renderDiagram()}
         </div>
       </div>
     </div>
@@ -127,20 +253,66 @@ function QuickStatsCard({ icon: Icon, title, value, trend }: { icon: any; title:
 
 function NotificationCard({ notification }: { notification: Notification }) {
   const typeColors = {
-    success: 'bg-green-50 border-green-200 text-green-700',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-    info: 'bg-blue-50 border-blue-200 text-blue-700'
+    success: 'bg-green-50 border-l-4 border-green-500 text-green-700',
+    warning: 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700',
+    info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-700'
+  };
+
+  const typeIcons = {
+    success: <Check className="w-5 h-5" />,
+    warning: <AlertTriangle className="w-5 h-5" />,
+    info: <Info className="w-5 h-5" />
   };
 
   return (
-    <div className={`p-4 rounded-lg border ${typeColors[notification.type]} mb-3`}>
-      <div className="flex justify-between items-start">
-        <div>
-          <h4 className="font-medium">{notification.title}</h4>
+    <div className={`p-4 rounded-lg ${typeColors[notification.type]} transform transition-all duration-300 hover:scale-102 hover:shadow-md`}>
+      <div className="flex items-start space-x-4">
+        <div className="flex-shrink-0 mt-1">
+          {typeIcons[notification.type]}
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between items-start">
+            <h4 className="font-medium">{notification.title}</h4>
+            <span className="text-xs opacity-75 whitespace-nowrap ml-4">
+              {new Date(notification.date).toLocaleDateString()}
+            </span>
+          </div>
           <p className="text-sm mt-1">{notification.description}</p>
         </div>
-        <span className="text-xs opacity-75">{new Date(notification.date).toLocaleDateString()}</span>
       </div>
+    </div>
+  );
+}
+
+function RecommendationHighlight({ course }: { course: Course }) {
+  return (
+    <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl p-6 shadow-sm border border-blue-100 transform transition-all duration-300 hover:shadow-lg hover:scale-102">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-gray-900">{course.title}</h3>
+          <p className="text-sm text-gray-600 mt-1">{course.description}</p>
+        </div>
+        <div className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium ml-4">
+          <Brain className="w-4 h-4 mr-1" />
+          {course.aiRecommendationScore}%
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+        <div className="flex items-center">
+          <Users className="w-4 h-4 mr-2 text-blue-500" />
+          <span>{course.instructor}</span>
+        </div>
+        <div className="flex items-center">
+          <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+          <span>{new Date(course.startDate).toLocaleDateString()}</span>
+        </div>
+      </div>
+
+      <button className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center group">
+        <span>Zum Kurs</span>
+        <ArrowRight className="w-4 h-4 ml-2 transform transition-transform group-hover:translate-x-1" />
+      </button>
     </div>
   );
 }
@@ -289,35 +461,76 @@ export function DashboardPage() {
     }
   };
 
+  const topRecommendations = mockRecommendations
+    .sort((a, b) => (b.aiRecommendationScore || 0) - (a.aiRecommendationScore || 0))
+    .slice(0, 2);
+
   return (
     <div className="space-y-8">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <QuickStatsCard 
-          icon={BookOpen}
-          title="Aktive Kurse"
-          value={`${activeCourses}`}
-          trend="+2 diese Woche"
-        />
-        <QuickStatsCard 
-          icon={Calendar}
-          title="Geplante Kurse"
-          value={`${mockCourses.filter(c => c.status === 'draft').length}`}
-        />
-        <QuickStatsCard 
-          icon={Bell}
-          title="Offene Updates"
-          value={`${mockNotifications.length}`}
-        />
-        <QuickStatsCard 
-          icon={Users}
-          title="Aktive Teilnehmer"
-          value={`${totalStudents}`}
-          trend="+15% zum Vormonat"
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+            <BookOpen className="w-5 h-5 mr-2 text-blue-600" />
+            Kursstatistik
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <QuickStatsCard 
+              icon={BookOpen}
+              title="Aktive Kurse"
+              value={`${activeCourses}`}
+              trend="+2"
+              trendDirection="up"
+              cardType="bar"
+            />
+            <QuickStatsCard 
+              icon={Calendar}
+              title="Geplante Kurse"
+              value={`${mockCourses.filter(c => c.status === 'draft').length}`}
+              cardType="line"
+            />
+            <QuickStatsCard 
+              icon={Bell}
+              title="Offene Updates"
+              value={`${mockNotifications.length}`}
+              cardType="dots"
+            />
+            <QuickStatsCard 
+              icon={Users}
+              title="Aktive Teilnehmer"
+              value={`${totalStudents}`}
+              trend="+15%"
+              trendDirection="up"
+              cardType="wave"
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold flex items-center">
+                  <Bell className="w-5 h-5 mr-2 text-blue-600" />
+                  Benachrichtigungen
+                </h2>
+              </div>
+              <Link 
+                to="/notifications"
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center group"
+              >
+                <span>Alle</span>
+                <ArrowRight className="w-3 h-3 ml-1 transform transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
+              {mockNotifications.map(notification => (
+                <NotificationCard key={notification.id} notification={notification} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Course Management Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -331,7 +544,6 @@ export function DashboardPage() {
             </Link>
           </div>
 
-          {/* Filters */}
           <div className="mt-4 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -363,7 +575,6 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Course Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -490,37 +701,30 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* AI Recommendations Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">KI-Empfehlungen</h2>
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-8 text-white">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-semibold flex items-center">
+              <Brain className="w-6 h-6 mr-3" />
+              KI-Empfehlungen
+            </h2>
+            <p className="text-blue-100 mt-1">
+              Personalisierte Kursvorschläge basierend auf Ihrem Profil
+            </p>
+          </div>
           <Link 
             to="/recommendations" 
-            className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+            className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex items-center group"
           >
-            Alle anzeigen
+            <span>Alle anzeigen</span>
+            <ArrowRight className="w-4 h-4 ml-2 transform transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
-        <p className="text-blue-100">Personalisierte Kursvorschläge basierend auf Ihrem Profil</p>
-      </div>
 
-      {/* Notifications */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Benachrichtigungen</h2>
-            <Link 
-              to="/notifications"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-            >
-              Alle anzeigen
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {mockNotifications.map(notification => (
-              <NotificationCard key={notification.id} notification={notification} />
-            ))}
-          </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {topRecommendations.map(course => (
+            <RecommendationHighlight key={course.id} course={course} />
+          ))}
         </div>
       </div>
     </div>
